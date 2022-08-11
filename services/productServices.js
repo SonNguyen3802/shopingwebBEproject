@@ -23,7 +23,7 @@ exports.getAllProducts = async(page,thisLabel,thisCategory) => {
   const offset = (page - 1) * productLimit
   const label = await db.Labels.findOne({where: {name: thisLabel}})
   const category = await db.Categories.findOne({where: {name: thisCategory}})
-  const allProducts = await db.Products.findAll({
+  /*const renderProducts = await db.Products.findAll({
     include:[
       {model: db.Categories,as:'Categories',attributes:['name']},
       {model: db.Labels,as:'Labels',attributes:['name']}
@@ -36,16 +36,44 @@ exports.getAllProducts = async(page,thisLabel,thisCategory) => {
     },
     limit: productLimit,
     offset: offset
-  })
+  })*/
+  let [renderProducts,products_quantity] = await Promise.all([
+    await db.Products.findAll({
+      include:[
+        {model: db.Categories,as:'Categories',attributes:['name']},
+        {model: db.Labels,as:'Labels',attributes:['name']}
+      ],
+      raw: true,
+      nested: true,
+      where: {
+        labelId: label.id,
+        categoryId: category.id
+      },
+      limit: productLimit,
+      offset: offset
+    }),
+    await db.Products.findAll({
+      include:[
+        {model: db.Categories,as:'Categories',attributes:['name']},
+        {model: db.Labels,as:'Labels',attributes:['name']}
+      ],
+      raw: true,
+      nested: true,
+      where: {
+        labelId: label.id,
+        categoryId: category.id
+      }
+    })
+  ])
   let products = {}
-  for(let product of allProducts){
+  for(let product of renderProducts){
     let category = product['Categories.name']
     let label = product['Labels.name']
     if(products[category] === undefined) products[category] = {}
     if(products[category][label] === undefined) products[category][label] = []
     products[category][label].push(product)
   }
-  return products
+  return [products,products_quantity.length]
 }
 
 module.exports
