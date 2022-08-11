@@ -7,8 +7,10 @@ exports.getAllProduct = async (req, res) => {
       let page = (req.query['page'] !== 0 && /^\d+$/.test(req.query['page'])) ? req.query['page'] : 1
       let labelDefault = await db.Labels.findOne({where: {id: 1}})
       let categoryDefault = await db.Categories.findOne({where: {id: 1}})
+
       let label = req.query['label'] ? req.query['label'] : labelDefault.name
-      const allProducts = await productServices.getAllProducts(page,label)
+      let category = req.query['category'] ? req.query['category'] : categoryDefault.name
+      const allProducts = await productServices.getAllProducts(page,label,category)
       return res.status(200).json({
           status: "success",
           dataProduct: allProducts

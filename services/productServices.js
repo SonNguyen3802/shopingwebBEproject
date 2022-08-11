@@ -18,10 +18,11 @@ exports.updateProduct = async(id,quantity) => {
   })
 }
 
-exports.getAllProducts = async(page,thisLabel) => {
+exports.getAllProducts = async(page,thisLabel,thisCategory) => {
   const productLimit = 20
   const offset = (page - 1) * productLimit
   const label = await db.Labels.findOne({where: {name: thisLabel}})
+  const category = await db.Categories.findOne({where: {name: thisCategory}})
   const allProducts = await db.Products.findAll({
     include:[
       {model: db.Categories,as:'Categories',attributes:['name']},
@@ -31,6 +32,7 @@ exports.getAllProducts = async(page,thisLabel) => {
     nested: true,
     where: {
       labelId: label.id,
+      categoryId: category.id
     },
     limit: productLimit,
     offset: offset
